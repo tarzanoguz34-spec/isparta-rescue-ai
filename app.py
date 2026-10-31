@@ -348,7 +348,64 @@ CENTER = (37.7648, 30.5566)
 # ------------------------------------------------------------
 # YENİ AFET KAYDI
 # ------------------------------------------------------------
+        st.divider()
+        st.subheader("👥 Kullanıcı Yönetimi")
 
+        users_response = supabase.table("profiles") \
+            .select("id, role, created_at") \
+            .order("created_at", desc=True) \
+            .execute()
+
+        users = users_response.data or []
+
+        if users:
+            for user in users:
+                user_id = user["id"]
+                current_role = user["role"]
+
+                col1, col2, col3 = st.columns([3, 1, 2])
+
+                with col1:
+                    st.caption("Kullanıcı ID")
+                    st.code(user_id)
+
+                with col2:
+                    st.write("Mevcut rol")
+                    st.write(current_role)
+
+                with col3:
+                    if user_id == st.session_state.get("user_id"):
+                        st.info("Kendi hesabınız")
+                    else:
+                        new_role = st.selectbox(
+                            "Yeni rol",
+                            ["user", "admin"],
+                            index=0 if current_role == "user" else 1,
+                            key=f"role_{user_id}"
+                        )
+
+                        if st.button(
+                            "Rolü Güncelle",
+                            key=f"update_{user_id}"
+                        ):
+                            try:
+                                supabase.rpc(
+                                    "set_user_role",
+                                    {
+                                        "target_user_id": user_id,
+                                        "new_role": new_role
+                                    }
+                                ).execute()
+
+                                st.success("Kullanıcı rolü güncellendi.")
+                                st.rerun()
+
+                            except Exception as e:
+                                st.error(f"Rol güncellenemedi: {e}")
+
+                st.divider()
+        else:
+            st.info("Henüz kullanıcı bulunmuyor.")
 st.divider()
 st.header("🚨 Yeni Afet Kaydı")
 st.write("Yeni bir eğitim amaçlı afet senaryosu oluştur.")
