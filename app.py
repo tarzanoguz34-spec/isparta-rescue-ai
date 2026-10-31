@@ -40,13 +40,85 @@ except Exception as e:
     supabase = None
     supabase_configured = False
     st.error(f"Supabase bağlantı hatası: {e}")
+    st.stop()
 
-try:
-    supabase = get_supabase_client()
-    supabase_configured = True
-except Exception:
-    supabase = None
-    supabase_configured = False
+
+# ------------------------------------------------------------
+# KULLANICI KAYIT VE GİRİŞ EKRANI
+# ------------------------------------------------------------
+
+st.title("🚑 ISPARTA RESCUE AI")
+st.caption("Eğitim amaçlı afet müdahale simülasyonu")
+
+if "user_id" not in st.session_state:
+    st.session_state["user_id"] = None
+
+if st.session_state["user_id"] is None:
+    tab1, tab2 = st.tabs(["Giriş Yap", "Kayıt Ol"])
+
+    with tab1:
+        st.subheader("Hesabına giriş yap")
+        login_email = st.text_input("E-posta", key="login_email")
+        login_password = st.text_input(
+            "Şifre", type="password", key="login_password"
+        )
+
+        if st.button("Giriş Yap", key="login_button"):
+            try:
+                response = supabase.auth.sign_in_with_password({
+                    "email": login_email,
+                    "password": login_password
+                })
+
+                st.session_state["user_id"] = response.user.id
+                st.success("Giriş başarılı!")
+                st.rerun()
+
+            except Exception:
+                st.error("Giriş başarısız. E-posta ve şifreni kontrol et.")
+
+    with tab2:
+        st.subheader("Yeni hesap oluştur")
+        signup_email = st.text_input("E-posta adresi", key="signup_email")
+        signup_password = st.text_input(
+            "Şifre", type="password", key="signup_password"
+        )
+
+        if st.button("Kayıt Ol", key="signup_button"):
+            try:
+                response = supabase.auth.sign_up({
+                    "email": signup_email,
+                    "password": signup_password
+                })
+
+                if response.session is not None:
+                    st.session_state["user_id"] = response.user.id
+                    st.success("Hesabın oluşturuldu!")
+                    st.rerun()
+                else:
+                    st.info(
+                        "Kayıt oluşturuldu. E-posta adresine gelen "
+                        "doğrulama bağlantısını kontrol et."
+                    )
+
+            except Exception:
+                st.error("Kayıt oluşturulamadı. Bilgilerini kontrol et.")
+
+    st.stop()
+
+
+st.sidebar.success("Giriş yapıldı")
+st.sidebar.write(f"Kullanıcı ID: {st.session_state['user_id']}")
+
+if st.sidebar.button("Çıkış Yap"):
+    try:
+        supabase.auth.sign_out()
+    finally:
+        st.session_state["user_id"] = None
+        st.rerun()
+
+
+CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
 CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
 TEAM_OFFSETS = [
     (-0.012, -0.014),
