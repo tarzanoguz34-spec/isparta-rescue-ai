@@ -152,6 +152,7 @@ div[data-testid="stButton"] button:hover {
 }
 </style>
 """, unsafe_allow_html=True)
+
 if st.session_state["user_id"] is None:
     tab1, tab2 = st.tabs(["Giriş Yap", "Kayıt Ol"])
 
@@ -162,7 +163,7 @@ if st.session_state["user_id"] is None:
             "Şifre", type="password", key="login_password"
         )
 
- if st.button("Giriş Yap", key="login_button"):
+        if st.button("Giriş Yap", key="login_button"):
             try:
                 response = supabase.auth.sign_in_with_password({
                     "email": login_email,
@@ -171,11 +172,13 @@ if st.session_state["user_id"] is None:
 
                 st.session_state["user_id"] = response.user.id
 
-                profile = supabase.table("profiles") \
-                    .select("role") \
-                    .eq("id", response.user.id) \
-                    .single() \
+                profile = (
+                    supabase.table("profiles")
+                    .select("role")
+                    .eq("id", response.user.id)
+                    .single()
                     .execute()
+                )
 
                 st.session_state["user_role"] = profile.data["role"]
 
@@ -187,7 +190,9 @@ if st.session_state["user_id"] is None:
 
     with tab2:
         st.subheader("Yeni hesap oluştur")
-        signup_email = st.text_input("E-posta adresi", key="signup_email")
+        signup_email = st.text_input(
+            "E-posta adresi", key="signup_email"
+        )
         signup_password = st.text_input(
             "Şifre", type="password", key="signup_password"
         )
@@ -198,21 +203,23 @@ if st.session_state["user_id"] is None:
                     "email": signup_email,
                     "password": signup_password
                 })
-                if response.session is not None:
-                   st.session_state["user_id"] = response.user.id
-st.session_state["user_role"] = "user"
 
-st.success("Hesabın oluşturuldu!")
-st.rerun()
+                if response.session is not None:
+                    st.session_state["user_id"] = response.user.id
+                    st.session_state["user_role"] = "user"
+                    st.success("Hesabın oluşturuldu!")
+                    st.rerun()
                 else:
                     st.info(
                         "Kayıt oluşturuldu. E-posta adresine gelen "
                         "doğrulama bağlantısını kontrol et."
                     )
+
             except Exception as e:
                 st.error(f"Kayıt hatası: {e}")
 
     st.stop()
+
 st.sidebar.success("Giriş yapıldı")
 st.sidebar.write(f"Kullanıcı ID: {st.session_state['user_id']}")
 
