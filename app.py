@@ -338,8 +338,10 @@ if st.session_state.get("user_role") == "admin":
         else:
             st.info("Henüz afet kaydı bulunmuyor.")
 
-       except Exception as e:
+    except Exception as e:
         st.error(f"Admin paneli verileri yüklenemedi: {e}")
+
+    st.divider()
 
     st.subheader("👥 Kullanıcı Yönetimi ve Faaliyet Takibi")
 
@@ -350,9 +352,7 @@ if st.session_state.get("user_role") == "admin":
 
         users = activity_response.data or []
 
-        search_text = st.text_input(
-            "🔎 Kullanıcı ID ile ara"
-        )
+        search_text = st.text_input("🔎 Kullanıcı ID ile ara")
 
         role_filter = st.selectbox(
             "Rol filtresi",
@@ -381,7 +381,6 @@ if st.session_state.get("user_role") == "admin":
                 with col1:
                     st.write("**Kayıt tarihi**")
                     st.write(user["registered_at"] or "Bilinmiyor")
-
                     st.write("**Son giriş**")
                     st.write(user["last_login"] or "Henüz giriş yapmamış")
 
