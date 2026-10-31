@@ -24,7 +24,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 # ISPARTA RESCUE AI — Arka plan tasarımı
-with open("isparta_arka_plan.png", "rb") as image_file:
+with open(".devcontainer/isparta_arka_plan.png.png", "rb") as image_file:
     background_image = base64.b64encode(
         image_file.read()
     ).decode()
