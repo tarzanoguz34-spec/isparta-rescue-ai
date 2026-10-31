@@ -200,8 +200,8 @@ if st.session_state["user_id"] is None:
                         "doğrulama bağlantısını kontrol et."
                     )
 
-            except Exception:
-                st.error("Kayıt oluşturulamadı. Bilgilerini kontrol et.")
+           except Exception as e:
+    st.error(f"Kayıt hatası: {e}")
 
     st.stop()
 
