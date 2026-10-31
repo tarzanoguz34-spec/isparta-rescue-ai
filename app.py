@@ -23,12 +23,23 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-@st.cache_resource
 def get_supabase_client():
-    return create_client(
-        st.secrets["SUPABASE_URL"],
-        st.secrets["SUPABASE_KEY"]
-    )
+    if "supabase_client" not in st.session_state:
+        st.session_state["supabase_client"] = create_client(
+            st.secrets["SUPABASE_URL"],
+            st.secrets["SUPABASE_KEY"]
+        )
+
+    return st.session_state["supabase_client"]
+
+
+try:
+    supabase = get_supabase_client()
+    supabase_configured = True
+except Exception as e:
+    supabase = None
+    supabase_configured = False
+    st.error(f"Supabase bağlantı hatası: {e}")
 
 try:
     supabase = get_supabase_client()
