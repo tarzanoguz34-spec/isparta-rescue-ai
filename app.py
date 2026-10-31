@@ -538,6 +538,37 @@ with tab_route:
                 st.session_state["route_layers"] = route_layers
                 st.session_state["active_graph"] = G
                 st.session_state["active_mode"] = network_mode
+                
+                # Simülasyon sonucunu Supabase'e kaydet
+                try:
+                    best_team = min(
+                        [row for row in rows if row["Mesafe (m)"] is not None],
+                        key=lambda row: row["Mesafe (m)"],
+                        default=None
+                    )
+
+                    result_data = {
+                        "analysis_type": "route_analysis",
+                        "transport_mode": network_mode,
+                        "incident_coordinates": {
+                            "latitude": incident[0],
+                            "longitude": incident[1]
+                        },
+                        "teams": rows,
+                        "nearest_team": best_team
+                    }
+
+                    supabase.table("simulation_results").insert({
+                        "incident_id": selected_incident["id"],
+                        "result_data": result_data,
+                        "user_id": st.session_state["user_id"]
+                    }).execute()
+
+                    st.success("Simülasyon sonucu geçmişe kaydedildi.")
+
+                except Exception as e:
+                    st.warning(f"Simülasyon kaydedilemedi: {e}")
+
         except Exception as exc:
             st.error(f"Yol ağı alınamadı veya rota hesaplanamadı: {exc}")
             st.info("İnternet bağlantısını kontrol edip yeniden deneyebilirsin. OpenStreetMap hizmeti geçici olarak yanıt vermiyor olabilir.")
