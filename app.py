@@ -462,6 +462,52 @@ st.warning(
     "Veriler, yol durumu ve sonuçlar gerçek zamanlı doğrulanmadığından gerçek acil müdahalede kullanılmamalıdır."
 )
 
+# ------------------------------------------------------------
+# KULLANICI İSTATİSTİK PANELİ
+# ------------------------------------------------------------
+
+st.divider()
+st.header("📊 Kullanıcı İstatistik Paneli")
+
+try:
+    stats_incidents = supabase.table("incidents") \
+        .select("id, incident_type") \
+        .eq("user_id", st.session_state["user_id"]) \
+        .execute().data
+
+    stats_simulations = supabase.table("simulation_results") \
+        .select("id") \
+        .eq("user_id", st.session_state["user_id"]) \
+        .execute().data
+
+    total_incidents = len(stats_incidents)
+    total_simulations = len(stats_simulations)
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("🚨 Toplam Afet Kaydı", total_incidents)
+    col2.metric("📈 Toplam Simülasyon", total_simulations)
+    col3.metric(
+        "📍 Farklı Afet Türü",
+        len(set(
+            item["incident_type"]
+            for item in stats_incidents
+            if item["incident_type"]
+        ))
+    )
+
+    st.subheader("Afet Türlerine Göre Dağılım")
+
+    if stats_incidents:
+        type_counts = pd.DataFrame(stats_incidents)
+        type_counts = type_counts["incident_type"].value_counts()
+        st.bar_chart(type_counts)
+    else:
+        st.info("Henüz istatistik oluşturacak afet kaydın yok.")
+
+except Exception as e:
+    st.error(f"İstatistikler yüklenemedi: {e}")
+
 with st.sidebar:
     st.header("⚙️ Simülasyon ayarları")
     radius = st.slider("Ekiplerin merkezden varsayımsal uzaklığı (km)", 0.5, 4.0, 1.8, 0.1)
