@@ -9,6 +9,7 @@ import networkx as nx
 import osmnx as ox
 import pandas as pd
 import streamlit as st
+from supabase import create_client
 from streamlit_folium import st_folium
 
 # ------------------------------------------------------------
@@ -22,7 +23,19 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+@st.cache_resource
+def get_supabase_client():
+    return create_client(
+        st.secrets["SUPABASE_URL"],
+        st.secrets["SUPABASE_KEY"]
+    )
 
+try:
+    supabase = get_supabase_client()
+    supabase_configured = True
+except Exception:
+    supabase = None
+    supabase_configured = False
 CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
 TEAM_OFFSETS = [
     (-0.012, -0.014),
