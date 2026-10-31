@@ -292,7 +292,50 @@ if st.sidebar.button("Çıkış Yap"):
         st.session_state["user_id"] = None
         st.session_state["user_role"] = None
         st.rerun()
+# ------------------------------------------------------------
+# ADMIN PANELİ
+# ------------------------------------------------------------
 
+if st.session_state.get("user_role") == "admin":
+
+    st.sidebar.success("👑 Yönetici hesabı")
+
+    st.title("👑 ISPARTA RESCUE AI — ADMIN PANELİ")
+    st.caption("Sistem genelindeki kayıt ve simülasyon istatistikleri")
+
+    try:
+        all_profiles = supabase.table("profiles") \
+            .select("id") \
+            .execute().data
+
+        all_incidents = supabase.table("incidents") \
+            .select("id, incident_type") \
+            .execute().data
+
+        all_simulations = supabase.table("simulation_results") \
+            .select("id") \
+            .execute().data
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("👥 Toplam Kullanıcı", len(all_profiles))
+        col2.metric("🚨 Toplam Afet Kaydı", len(all_incidents))
+        col3.metric("📈 Toplam Simülasyon", len(all_simulations))
+
+        st.subheader("Afet Türlerine Göre Dağılım")
+
+        if all_incidents:
+            incident_counts = pd.DataFrame(all_incidents)
+            st.bar_chart(
+                incident_counts["incident_type"].value_counts()
+            )
+        else:
+            st.info("Henüz afet kaydı bulunmuyor.")
+
+    except Exception as e:
+        st.error(f"Admin paneli verileri yüklenemedi: {e}")
+
+    st.divider()
 CENTER = (37.7648, 30.5566)
 
 # ------------------------------------------------------------
