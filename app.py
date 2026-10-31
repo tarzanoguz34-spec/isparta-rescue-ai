@@ -79,9 +79,46 @@ except Exception as e:
 # KULLANICI KAYIT VE GİRİŞ EKRANI
 # ------------------------------------------------------------
 
-st.title("🚑 ISPARTA RESCUE AI")
-st.caption("Eğitim amaçlı afet müdahale simülasyonu")
+st.markdown("""
+<style>
+.brand-header {
+    text-align: center;
+    padding: 25px 15px 20px 15px;
+    background: rgba(5, 15, 38, 0.72);
+    border: 1px solid rgba(255,255,255,0.22);
+    border-radius: 18px;
+    margin-bottom: 22px;
+    backdrop-filter: blur(8px);
+}
+.sponsor {
+    color: #fbbf24;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+.brand-title {
+    color: white;
+    font-size: 38px;
+    font-weight: 900;
+    margin: 12px 0 5px 0;
+    text-shadow: 0 3px 15px #000;
+}
+.brand-subtitle {
+    color: #dbeafe;
+    font-size: 16px;
+}
+</style>
 
+<div class="brand-header">
+    <div class="sponsor">IŞIKKENT AİHL SPONSORLUĞUNDA</div>
+    <div class="brand-title">🚑 ISPARTA RESCUE AI</div>
+    <div class="brand-subtitle">
+        Daha Güvenli Bir Isparta İçin...
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.caption("Eğitim amaçlı afet müdahale simülasyonu")
 if "user_id" not in st.session_state:
     st.session_state["user_id"] = None
 
@@ -151,7 +188,7 @@ if st.sidebar.button("Çıkış Yap"):
 
 
 CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
-CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
+
 TEAM_OFFSETS = [
     (-0.012, -0.014),
     ( 0.012, -0.014),
