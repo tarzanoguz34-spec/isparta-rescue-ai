@@ -78,9 +78,9 @@ except Exception as e:
 # ------------------------------------------------------------
 # KULLANICI KAYIT VE GİRİŞ EKRANI
 # ------------------------------------------------------------
-logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
+logo_sol, logo_orta, logo_sag = st.columns([1, 1, 1])
 
-with logo_col2:
+with logo_orta:
     st.image(
         ".devcontainer/isikkent_logo.png.jpe",
         width=160
