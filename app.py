@@ -78,7 +78,13 @@ except Exception as e:
 # ------------------------------------------------------------
 # KULLANICI KAYIT VE GİRİŞ EKRANI
 # ------------------------------------------------------------
+logo_col1, logo_col2, logo_col3 = st.columns([1, 2, 1])
 
+with logo_col2:
+    st.image(
+        ".devcontainer/isikkent_logo.png.jpe",
+        width=160
+    )
 st.markdown("""
 <style>
 .brand-header {
