@@ -176,7 +176,7 @@ if st.session_state["user_id"] is None:
             except Exception:
                 st.error("Giriş başarısız. E-posta ve şifreni kontrol et.")
 
-    with tab2:
+       with tab2:
         st.subheader("Yeni hesap oluştur")
         signup_email = st.text_input("E-posta adresi", key="signup_email")
         signup_password = st.text_input(
@@ -200,22 +200,10 @@ if st.session_state["user_id"] is None:
                         "doğrulama bağlantısını kontrol et."
                     )
 
-           except Exception as e:
-    st.error(f"Kayıt hatası: {e}")
+            except Exception as e:
+                st.error(f"Kayıt hatası: {e}")
 
     st.stop()
-
-
-st.sidebar.success("Giriş yapıldı")
-st.sidebar.write(f"Kullanıcı ID: {st.session_state['user_id']}")
-
-if st.sidebar.button("Çıkış Yap"):
-    try:
-        supabase.auth.sign_out()
-    finally:
-        st.session_state["user_id"] = None
-        st.rerun()
-
 
 CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
 
