@@ -162,7 +162,7 @@ if st.session_state["user_id"] is None:
             "Şifre", type="password", key="login_password"
         )
 
-               if st.button("Giriş Yap", key="login_button"):
+ if st.button("Giriş Yap", key="login_button"):
             try:
                 response = supabase.auth.sign_in_with_password({
                     "email": login_email,
