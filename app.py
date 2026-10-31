@@ -340,42 +340,68 @@ if st.session_state.get("user_role") == "admin":
 
     except Exception as e:
         st.error(f"Admin paneli verileri yüklenemedi: {e}")
-    st.subheader("👥 Kullanıcı Yönetimi")
+       st.subheader("👥 Kullanıcı Yönetimi ve Faaliyet Takibi")
 
-    users_response = supabase.table("profiles") \
-        .select("id, role, created_at") \
-        .order("created_at", desc=True) \
-        .execute()
+    try:
+        activity_response = supabase.rpc(
+            "get_admin_user_activity"
+        ).execute()
 
-    users = users_response.data or []
+        users = activity_response.data or []
 
-    if users:
-        for user in users:
-            user_id = user["id"]
-            current_role = user["role"]
+        search_text = st.text_input(
+            "🔎 Kullanıcı ID ile ara"
+        )
 
-            col1, col2, col3 = st.columns([3, 1, 2])
+        role_filter = st.selectbox(
+            "Rol filtresi",
+            ["Tümü", "admin", "user"]
+        )
 
-            with col1:
-                st.caption("Kullanıcı ID")
-                st.code(user_id)
+        filtered_users = [
+            user for user in users
+            if search_text.lower() in user["user_id"].lower()
+            and (
+                role_filter == "Tümü"
+                or user["role"] == role_filter
+            )
+        ]
 
-            with col2:
-                st.write("Mevcut rol")
-                st.write(current_role)
+        st.write(f"Bulunan kullanıcı: {len(filtered_users)}")
 
-            with col3:
+        for user in filtered_users:
+            user_id = user["user_id"]
+            current_role = user["role"] or "user"
+
+            with st.expander(f"👤 {user_id} — {current_role}"):
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.write("**Kayıt tarihi**")
+                    st.write(user["registered_at"] or "Bilinmiyor")
+
+                    st.write("**Son giriş**")
+                    st.write(user["last_login"] or "Henüz giriş yapmamış")
+
+                with col2:
+                    st.metric("Afet kaydı", user["incident_count"])
+                    st.metric("Simülasyon", user["simulation_count"])
+
                 if user_id == st.session_state.get("user_id"):
-                    st.info("Kendi hesabınız")
+                    st.info("Kendi hesabınızın rolünü buradan değiştiremezsiniz.")
                 else:
                     new_role = st.selectbox(
-                        "Yeni rol",
+                        "Kullanıcı rolü",
                         ["user", "admin"],
                         index=0 if current_role == "user" else 1,
-                        key=f"role_{user_id}"
+                        key=f"activity_role_{user_id}"
                     )
 
-                    if st.button("Rolü Güncelle", key=f"update_{user_id}"):
+                    if st.button(
+                        "Rolü Güncelle",
+                        key=f"activity_update_{user_id}"
+                    ):
                         try:
                             supabase.rpc(
                                 "set_user_role",
@@ -391,9 +417,8 @@ if st.session_state.get("user_role") == "admin":
                         except Exception as e:
                             st.error(f"Rol güncellenemedi: {e}")
 
-            st.divider()
-    else:
-        st.info("Henüz kullanıcı bulunmuyor.")
+    except Exception as e:
+        st.error(f"Kullanıcı faaliyetleri yüklenemedi: {e}")
 
     st.divider()
     st.divider()
