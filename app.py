@@ -121,7 +121,37 @@ st.markdown("""
 st.caption("Eğitim amaçlı afet müdahale simülasyonu")
 if "user_id" not in st.session_state:
     st.session_state["user_id"] = None
+st.markdown("""
+<style>
+div[data-testid="stTabs"] {
+    background: rgba(5, 15, 38, 0.82);
+    padding: 22px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.20);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+}
 
+div[data-testid="stTextInput"] label {
+    color: white !important;
+    font-weight: 600;
+}
+
+div[data-testid="stButton"] button {
+    background: linear-gradient(90deg, #b91c1c, #1d4ed8);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    width: 100%;
+    min-height: 45px;
+}
+
+div[data-testid="stButton"] button:hover {
+    border: 1px solid white;
+    color: white;
+}
+</style>
+""", unsafe_allow_html=True)
 if st.session_state["user_id"] is None:
     tab1, tab2 = st.tabs(["Giriş Yap", "Kayıt Ol"])
 
