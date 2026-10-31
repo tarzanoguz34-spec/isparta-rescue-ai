@@ -198,9 +198,11 @@ st.rerun()
                     "password": signup_password
                 })
                 if response.session is not None:
-                    st.session_state["user_id"] = response.user.id
-                    st.success("Hesabın oluşturuldu!")
-                    st.rerun()
+                   st.session_state["user_id"] = response.user.id
+st.session_state["user_role"] = "user"
+
+st.success("Hesabın oluşturuldu!")
+st.rerun()
                 else:
                     st.info(
                         "Kayıt oluşturuldu. E-posta adresine gelen "
@@ -280,13 +282,18 @@ try:
 
 except Exception as e:
     st.sidebar.error(f"Kayıtlar yüklenemedi: {e}")
+except Exception as e:
+    st.sidebar.error(f"Kayıtlar yüklenemedi: {e}")
+
 if st.sidebar.button("Çıkış Yap"):
     try:
         supabase.auth.sign_out()
     finally:
         st.session_state["user_id"] = None
+        st.session_state["user_role"] = None
         st.rerun()
-CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
+
+CENTER = (37.7648, 30.5566)
 
 # ------------------------------------------------------------
 # YENİ AFET KAYDI
