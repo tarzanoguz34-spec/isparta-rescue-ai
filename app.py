@@ -238,6 +238,71 @@ if st.sidebar.button("Çıkış Yap"):
         st.rerun()
 CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
 
+# ------------------------------------------------------------
+# YENİ AFET KAYDI
+# ------------------------------------------------------------
+
+st.divider()
+st.header("🚨 Yeni Afet Kaydı")
+st.write("Yeni bir eğitim amaçlı afet senaryosu oluştur.")
+
+with st.form("incident_form"):
+    title = st.text_input(
+        "Afet başlığı",
+        placeholder="Örn: Isparta Deprem Senaryosu"
+    )
+
+    incident_type = st.selectbox(
+        "Afet türü",
+        ["Deprem", "Yangın", "Sel", "Heyelan", "Diğer"]
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        latitude = st.number_input(
+            "Enlem",
+            min_value=-90.0,
+            max_value=90.0,
+            value=float(CENTER[0]),
+            format="%.6f"
+        )
+
+    with col2:
+        longitude = st.number_input(
+            "Boylam",
+            min_value=-180.0,
+            max_value=180.0,
+            value=float(CENTER[1]),
+            format="%.6f"
+        )
+
+    submitted = st.form_submit_button(
+        "💾 Afet Kaydını Oluştur",
+        type="primary",
+        use_container_width=True
+    )
+
+    if submitted:
+        if not title.strip():
+            st.error("Lütfen afet başlığı gir.")
+        else:
+            try:
+                supabase.table("incidents").insert({
+                    "title": title.strip(),
+                    "incident_type": incident_type,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "status": "active",
+                    "user_id": st.session_state["user_id"]
+                }).execute()
+
+                st.success("Afet kaydı başarıyla oluşturuldu!")
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"Kayıt oluşturulamadı: {e}")
+
 TEAM_OFFSETS = [
     (-0.012, -0.014),
     ( 0.012, -0.014),
