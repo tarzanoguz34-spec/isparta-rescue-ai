@@ -78,13 +78,7 @@ except Exception as e:
 # ------------------------------------------------------------
 # KULLANICI KAYIT VE GİRİŞ EKRANI
 # ------------------------------------------------------------
-logo_sol, logo_orta, logo_sag = st.columns([1, 1, 1])
 
-with logo_orta:
-    st.image(
-        ".devcontainer/isikkent_logo.png.jpe",
-        width=160
-    )
 st.markdown("""
 <style>
 .brand-header {
