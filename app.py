@@ -168,15 +168,13 @@ if st.session_state["user_id"] is None:
                     "email": login_email,
                     "password": login_password
                 })
-
                 st.session_state["user_id"] = response.user.id
                 st.success("Giriş başarılı!")
                 st.rerun()
-
             except Exception:
                 st.error("Giriş başarısız. E-posta ve şifreni kontrol et.")
 
-       with tab2:
+    with tab2:
         st.subheader("Yeni hesap oluştur")
         signup_email = st.text_input("E-posta adresi", key="signup_email")
         signup_password = st.text_input(
@@ -189,7 +187,6 @@ if st.session_state["user_id"] is None:
                     "email": signup_email,
                     "password": signup_password
                 })
-
                 if response.session is not None:
                     st.session_state["user_id"] = response.user.id
                     st.success("Hesabın oluşturuldu!")
@@ -199,7 +196,6 @@ if st.session_state["user_id"] is None:
                         "Kayıt oluşturuldu. E-posta adresine gelen "
                         "doğrulama bağlantısını kontrol et."
                     )
-
             except Exception as e:
                 st.error(f"Kayıt hatası: {e}")
 
