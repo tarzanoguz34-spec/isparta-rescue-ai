@@ -209,6 +209,46 @@ st.sidebar.caption("Yalnızca kendi hesabına ait kayıtlar")
 st.sidebar.markdown("---")
 st.sidebar.subheader("📋 Afet Kayıtlarım")
 
+# ------------------------------------------------------------
+# SİMÜLASYON GEÇMİŞİ
+# ------------------------------------------------------------
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("📊 Simülasyon Geçmişim")
+
+try:
+    history_response = supabase.table("simulation_results") \
+        .select("*") \
+        .eq("user_id", st.session_state["user_id"]) \
+        .order("created_at", desc=True) \
+        .execute()
+
+    history = history_response.data
+
+    if history:
+        for result in history:
+            with st.sidebar.expander(
+                f"Simülasyon #{result['id']}"
+            ):
+                data = result["result_data"]
+
+                st.write("Analiz türü:", data.get("analysis_type", "Bilinmiyor"))
+                st.write("Ulaşım:", data.get("transport_mode", "Bilinmiyor"))
+
+                nearest = data.get("nearest_team")
+
+                if nearest:
+                    st.write("En yakın ekip:", nearest["Ekip"])
+                    st.write("Mesafe:", f"{nearest['Mesafe (m)']} m")
+
+                st.caption(f"Tarih: {result['created_at']}")
+
+    else:
+        st.info("Henüz simülasyon geçmişin yok.")
+
+except Exception as e:
+    st.sidebar.error(f"Geçmiş yüklenemedi: {e}")
+
 try:
     response = supabase.table("incidents") \
         .select("*") \
