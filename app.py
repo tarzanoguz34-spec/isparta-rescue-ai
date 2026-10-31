@@ -169,8 +169,18 @@ if st.session_state["user_id"] is None:
                     "password": login_password
                 })
                 st.session_state["user_id"] = response.user.id
-                st.success("Giriş başarılı!")
-                st.rerun()
+
+# Kullanıcının rolünü Supabase'den al
+profile = supabase.table("profiles") \
+    .select("role") \
+    .eq("id", response.user.id) \
+    .single() \
+    .execute()
+
+st.session_state["user_role"] = profile.data["role"]
+
+st.success("Giriş başarılı!")
+st.rerun()
             except Exception:
                 st.error("Giriş başarısız. E-posta ve şifreni kontrol et.")
 
