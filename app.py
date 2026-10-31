@@ -162,27 +162,28 @@ if st.session_state["user_id"] is None:
             "Şifre", type="password", key="login_password"
         )
 
-        if st.button("Giriş Yap", key="login_button"):
+               if st.button("Giriş Yap", key="login_button"):
             try:
                 response = supabase.auth.sign_in_with_password({
                     "email": login_email,
                     "password": login_password
                 })
+
                 st.session_state["user_id"] = response.user.id
 
-# Kullanıcının rolünü Supabase'den al
-profile = supabase.table("profiles") \
-    .select("role") \
-    .eq("id", response.user.id) \
-    .single() \
-    .execute()
+                profile = supabase.table("profiles") \
+                    .select("role") \
+                    .eq("id", response.user.id) \
+                    .single() \
+                    .execute()
 
-st.session_state["user_role"] = profile.data["role"]
+                st.session_state["user_role"] = profile.data["role"]
 
-st.success("Giriş başarılı!")
-st.rerun()
-            except Exception:
-                st.error("Giriş başarısız. E-posta ve şifreni kontrol et.")
+                st.success("Giriş başarılı!")
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"Giriş başarısız veya kullanıcı rolü alınamadı: {e}")
 
     with tab2:
         st.subheader("Yeni hesap oluştur")
