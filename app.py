@@ -206,7 +206,30 @@ st.sidebar.write(f"Kullanıcı ID: {st.session_state['user_id']}")
 st.sidebar.markdown("---")
 st.sidebar.subheader("👤 Kullanıcı Paneli")
 st.sidebar.caption("Yalnızca kendi hesabına ait kayıtlar")
+st.sidebar.markdown("---")
+st.sidebar.subheader("📋 Afet Kayıtlarım")
 
+try:
+    response = supabase.table("incidents") \
+        .select("*") \
+        .eq("user_id", st.session_state["user_id"]) \
+        .order("created_at", desc=True) \
+        .execute()
+
+    incidents = response.data
+
+    if incidents:
+        for item in incidents:
+            with st.sidebar.expander(item["title"]):
+                st.write("Tür:", item["incident_type"])
+                st.write("Durum:", item["status"])
+                st.write("Enlem:", item["latitude"])
+                st.write("Boylam:", item["longitude"])
+    else:
+        st.sidebar.info("Henüz afet kaydın yok.")
+
+except Exception as e:
+    st.sidebar.error(f"Kayıtlar yüklenemedi: {e}")
 if st.sidebar.button("Çıkış Yap"):
     try:
         supabase.auth.sign_out()
