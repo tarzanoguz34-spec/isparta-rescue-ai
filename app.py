@@ -3,7 +3,7 @@ from __future__ import annotations
 import math
 import random
 from typing import Any
-
+import base64
 import folium
 import networkx as nx
 import osmnx as ox
@@ -22,6 +22,38 @@ st.set_page_config(
     page_icon="🚑",
     layout="wide",
     initial_sidebar_state="expanded",
+)
+# ISPARTA RESCUE AI — Arka plan tasarımı
+with open("isparta_arka_plan.png", "rb") as image_file:
+    background_image = base64.b64encode(
+        image_file.read()
+    ).decode()
+
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image:
+            linear-gradient(
+                rgba(3, 10, 28, 0.35),
+                rgba(3, 10, 28, 0.50)
+            ),
+            url("data:image/png;base64,{background_image}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }}
+
+    [data-testid="stHeader"] {{
+        background: rgba(0, 0, 0, 0);
+    }}
+
+    .block-container {{
+        padding-top: 2rem;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 def get_supabase_client():
     if "supabase_client" not in st.session_state:
