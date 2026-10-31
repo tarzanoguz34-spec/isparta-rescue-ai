@@ -311,24 +311,35 @@ if st.session_state.get("user_role") == "admin":
     st.title("👑 ISPARTA RESCUE AI — ADMIN PANELİ")
     st.caption("Sistem genelindeki kayıt ve simülasyon istatistikleri")
 
-    try:
-        all_profiles = supabase.table("profiles") \
-            .select("id") \
-            .execute().data
+        try:
+        # Güvenli admin istatistiklerini Supabase'den al
+        stats_response = supabase.rpc(
+            "get_admin_dashboard_stats"
+        ).execute()
 
-        all_incidents = supabase.table("incidents") \
-            .select("id, incident_type") \
-            .execute().data
-
-        all_simulations = supabase.table("simulation_results") \
-            .select("id") \
-            .execute().data
+        stats = stats_response.data
 
         col1, col2, col3 = st.columns(3)
 
-        col1.metric("👥 Toplam Kullanıcı", len(all_profiles))
-        col2.metric("🚨 Toplam Afet Kaydı", len(all_incidents))
-        col3.metric("📈 Toplam Simülasyon", len(all_simulations))
+        col1.metric(
+            "👥 Toplam Kullanıcı",
+            stats["total_users"]
+        )
+
+        col2.metric(
+            "🚨 Toplam Afet Kaydı",
+            stats["total_incidents"]
+        )
+
+        col3.metric(
+            "📈 Toplam Simülasyon",
+            stats["total_simulations"]
+        )
+
+        # Afet türü grafiği
+        all_incidents = supabase.table("incidents") \
+            .select("incident_type") \
+            .execute().data
 
         st.subheader("Afet Türlerine Göre Dağılım")
 
@@ -342,7 +353,6 @@ if st.session_state.get("user_role") == "admin":
 
     except Exception as e:
         st.error(f"Admin paneli verileri yüklenemedi: {e}")
-
     st.divider()
 CENTER = (37.7648, 30.5566)
 
