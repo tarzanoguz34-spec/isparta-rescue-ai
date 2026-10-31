@@ -200,7 +200,19 @@ if st.session_state["user_id"] is None:
                 st.error(f"Kayıt hatası: {e}")
 
     st.stop()
+st.sidebar.success("Giriş yapıldı")
+st.sidebar.write(f"Kullanıcı ID: {st.session_state['user_id']}")
 
+st.sidebar.markdown("---")
+st.sidebar.subheader("👤 Kullanıcı Paneli")
+st.sidebar.caption("Yalnızca kendi hesabına ait kayıtlar")
+
+if st.sidebar.button("Çıkış Yap"):
+    try:
+        supabase.auth.sign_out()
+    finally:
+        st.session_state["user_id"] = None
+        st.rerun()
 CENTER = (37.7648, 30.5566)  # Isparta şehir merkezi (varsayılan harita odağı)
 
 TEAM_OFFSETS = [
