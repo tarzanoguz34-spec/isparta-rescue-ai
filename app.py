@@ -438,6 +438,47 @@ if "incident" not in st.session_state:
     st.session_state["incident"] = (CENTER[0] + 0.003, CENTER[1] + 0.002)
 incident = st.session_state["incident"]
 
+# ------------------------------------------------------------
+# KAYITLI AFETİ SİMÜLASYONDA KULLAN
+# ------------------------------------------------------------
+
+st.subheader("📂 Kayıtlı Afet Senaryosu Seç")
+
+try:
+    saved_response = supabase.table("incidents") \
+        .select("*") \
+        .eq("user_id", st.session_state["user_id"]) \
+        .order("created_at", desc=True) \
+        .execute()
+
+    saved_incidents = saved_response.data
+
+    if saved_incidents:
+        incident_options = {
+            f"{item['title']} — {item['incident_type']}": item
+            for item in saved_incidents
+        }
+
+        selected_title = st.selectbox(
+            "Simülasyonda kullanılacak afet kaydı",
+            list(incident_options.keys())
+        )
+
+        selected_incident = incident_options[selected_title]
+
+        if st.button("Seçilen Afeti Haritaya Aktar"):
+            st.session_state["incident"] = (
+                float(selected_incident["latitude"]),
+                float(selected_incident["longitude"])
+            )
+            st.rerun()
+
+    else:
+        st.info("Önce yeni bir afet kaydı oluşturmalısın.")
+
+except Exception as e:
+    st.error(f"Afet kayıtları alınamadı: {e}")
+
 # First map is interactive and does not require downloading road data.
 left, right = st.columns([1.55, 1])
 with left:
