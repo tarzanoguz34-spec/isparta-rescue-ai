@@ -338,9 +338,10 @@ if st.session_state.get("user_role") == "admin":
         else:
             st.info("Henüz afet kaydı bulunmuyor.")
 
-    except Exception as e:
+       except Exception as e:
         st.error(f"Admin paneli verileri yüklenemedi: {e}")
-       st.subheader("👥 Kullanıcı Yönetimi ve Faaliyet Takibi")
+
+    st.subheader("👥 Kullanıcı Yönetimi ve Faaliyet Takibi")
 
     try:
         activity_response = supabase.rpc(
