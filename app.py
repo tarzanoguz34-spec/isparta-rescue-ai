@@ -9,7 +9,7 @@ import folium
 import networkx as nx
 import osmnx as ox
 # OSMnx bağlantı ayarları
-ox.settings.requests_timeout = 30
+ox.settings.requests_timeout = 120
 ox.settings.use_cache = True
 import pandas as pd
 import streamlit as st
@@ -520,11 +520,33 @@ def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
     ox.settings.use_cache = True
     ox.settings.log_console = False
     ox.settings.timeout = 180
-    return ox.graph_from_point(
-        CENTER,
-        dist=dist_m,
-        network_type=network_type,
-        simplify=True,
+       overpass_servers = [
+        "https://overpass.kumi.systems/api",
+        "https://overpass.private.coffee/api",
+        "https://overpass-api.de/api",
+    ]
+
+    last_error = None
+
+    for server in overpass_servers:
+        try:
+            ox.settings.overpass_url = server
+            ox.settings.requests_timeout = 60
+            ox.settings.use_cache = True
+
+            return ox.graph_from_point(
+                CENTER,
+                dist=dist_m,
+                network_type=network_type,
+                simplify=True,
+            )
+
+        except Exception as exc:
+            last_error = exc
+            continue
+
+    raise RuntimeError(
+        f"Yol ağı hiçbir Overpass sunucusundan alınamadı: {last_error}"
     )
 
 
