@@ -517,10 +517,12 @@ TEAM_COLORS = ["blue", "green", "purple", "darkred"]
 @st.cache_resource(show_spinner=False)
 def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
     """Download and cache an OSM road/pedestrian network around Isparta."""
+
     ox.settings.use_cache = True
     ox.settings.log_console = False
-    ox.settings.timeout = 180
-       overpass_servers = [
+    ox.settings.requests_timeout = 60
+
+    overpass_servers = [
         "https://overpass.kumi.systems/api",
         "https://overpass.private.coffee/api",
         "https://overpass-api.de/api",
@@ -531,8 +533,6 @@ def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
     for server in overpass_servers:
         try:
             ox.settings.overpass_url = server
-            ox.settings.requests_timeout = 60
-            ox.settings.use_cache = True
 
             return ox.graph_from_point(
                 CENTER,
@@ -546,9 +546,8 @@ def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
             continue
 
     raise RuntimeError(
-        f"Yol ağı hiçbir Overpass sunucusundan alınamadı: {last_error}"
+        f"Yol ağı alınamadı: {last_error}"
     )
-
 
 def nearest_node(graph: nx.MultiDiGraph, lat: float, lon: float) -> Any:
     return ox.distance.nearest_nodes(graph, X=lon, Y=lat)
