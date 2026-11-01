@@ -816,7 +816,7 @@ with tab_route:
             st.error(f"Yol ağı alınamadı veya rota hesaplanamadı: {exc}")
             st.info("İnternet bağlantısını kontrol edip yeniden deneyebilirsin. OpenStreetMap hizmeti geçici olarak yanıt vermiyor olabilir.")
 
-      if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
+         if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
         df = pd.DataFrame(st.session_state["route_rows"])
         st.dataframe(df, use_container_width=True, hide_index=True)
 
@@ -848,98 +848,95 @@ with tab_route:
     st.subheader("📄 Simülasyon Raporu")
 
     if st.button("PDF Raporunu Hazırla", key="create_pdf"):
+        buffer = BytesIO()
 
-                buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=A4
+        )
 
-                doc = SimpleDocTemplate(
-                    buffer,
-                    pagesize=A4
-                )
+        styles = getSampleStyleSheet()
+        elements = []
 
-                styles = getSampleStyleSheet()
-                elements = []
+        def pdf_text(value):
+            replacements = {
+                "ğ": "g", "Ğ": "G",
+                "ü": "u", "Ü": "U",
+                "ş": "s", "Ş": "S",
+                "ı": "i", "İ": "I",
+                "ö": "o", "Ö": "O",
+                "ç": "c", "Ç": "C"
+            }
+            for old, new in replacements.items():
+                value = value.replace(old, new)
+            return value
 
-                # Türkçe karakterleri PDF için sadeleştir
-                def pdf_text(value):
-                    replacements = {
-                        "ğ": "g", "Ğ": "G",
-                        "ü": "u", "Ü": "U",
-                        "ş": "s", "Ş": "S",
-                        "ı": "i", "İ": "I",
-                        "ö": "o", "Ö": "O",
-                        "ç": "c", "Ç": "C"
-                    }
-                    for old, new in replacements.items():
-                        value = value.replace(old, new)
-                    return value
+        elements.append(Paragraph(
+            "ISPARTA RESCUE AI",
+            styles["Title"]
+        ))
 
-                elements.append(Paragraph(
-                    "ISPARTA RESCUE AI",
-                    styles["Title"]
-                ))
+        elements.append(Paragraph(
+            "Egitim Amacli Afet Simulasyonu Raporu",
+            styles["Heading2"]
+        ))
 
-                elements.append(Paragraph(
-                    "Egitim Amacli Afet Simulasyonu Raporu",
-                    styles["Heading2"]
-                ))
+        elements.append(Spacer(1, 20))
 
-                elements.append(Spacer(1, 20))
+        elements.append(Paragraph(
+            f"Afet konumu: {incident[0]:.5f}, {incident[1]:.5f}",
+            styles["Normal"]
+        ))
 
-                elements.append(Paragraph(
-                    f"Afet konumu: {incident[0]:.5f}, {incident[1]:.5f}",
-                    styles["Normal"]
-                ))
+        elements.append(Paragraph(
+            f"Tarih: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
+            styles["Normal"]
+        ))
 
-                elements.append(Paragraph(
-                    f"Tarih: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
-                    styles["Normal"]
-                ))
+        elements.append(Spacer(1, 20))
 
-                elements.append(Spacer(1, 20))
+        table_data = [
+            ["Kurtarma Ekibi", "Mesafe (m)", "Durum"]
+        ]
 
-                table_data = [
-                    ["Kurtarma Ekibi", "Mesafe (m)", "Durum"]
-                ]
+        for row in st.session_state["route_rows"]:
+            table_data.append([
+                pdf_text(str(row["Ekip"])),
+                str(row["Mesafe (m)"])
+                if row["Mesafe (m)"] is not None
+                else "-",
+                pdf_text(str(row["Durum"]))
+            ])
 
-                for row in st.session_state["route_rows"]:
-                    table_data.append([
-                        pdf_text(str(row["Ekip"])),
-                        str(row["Mesafe (m)"])
-                        if row["Mesafe (m)"] is not None
-                        else "-",
-                        pdf_text(str(row["Durum"]))
-                    ])
+        report_table = Table(table_data, repeatRows=1)
 
-                report_table = Table(
-                    table_data,
-                    repeatRows=1
-                )
+        report_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.darkblue),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("PADDING", (0, 0), (-1, -1), 8),
+        ]))
 
-                report_table.setStyle(TableStyle([
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.darkblue),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ("PADDING", (0, 0), (-1, -1), 8),
-                ]))
+        elements.append(report_table)
+        elements.append(Spacer(1, 20))
 
-                elements.append(report_table)
+        elements.append(Paragraph(
+            pdf_text(
+                "Bu rapor egitim ve arastirma amacli bir simulasyon sonucudur. "
+                "Gercek afet ve acil durumlarda kullanilamaz."
+            ),
+            styles["Normal"]
+        ))
 
-                elements.append(Spacer(1, 20))
+        doc.build(elements)
 
-                elements.append(Paragraph(
-                    "Bu rapor egitim ve arastirma amacli bir simülasyon sonucudur. "
-                    "Gercek afet ve acil durumlarda kullanilamaz.",
-                    styles["Normal"]
-                ))
+        st.download_button(
+            "⬇️ PDF Raporunu İndir",
+            data=buffer.getvalue(),
+            file_name="isparta_rescue_ai_raporu.pdf",
+            mime="application/pdf"
+        )
 
-                doc.build(elements)
-
-                st.download_button(
-                    "⬇️ PDF Raporunu İndir",
-                    data=buffer.getvalue(),
-                    file_name="isparta_rescue_ai_raporu.pdf",
-                    mime="application/pdf"
-                )
 with tab_closure:
     st.subheader("Tek bir yol kesiminin kapanması senaryosu")
     st.write("Önce rota analizini çalıştır. Ardından seçilen ekibin rotasındaki bir yol kesimi geçici olarak kapatılarak alternatif aranır.")
