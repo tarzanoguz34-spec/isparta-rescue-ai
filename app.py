@@ -867,98 +867,219 @@ with tab_route:
             "ve gerçek saha koşulları hesaba katılmaz."
         )
 
-    # PDF RAPOR OLUŞTURMA
-    st.subheader("📄 Simülasyon Raporu")
+       # PROFESYONEL PDF RAPORU
+    st.subheader("📄 Profesyonel Simülasyon Raporu")
 
     if st.button("PDF Raporunu Hazırla", key="create_pdf"):
-        buffer = BytesIO()
 
-        doc = SimpleDocTemplate(buffer, pagesize=A4)
-        styles = getSampleStyleSheet()
-        elements = []
+        if "route_rows" not in st.session_state:
+            st.warning("Önce rota analizini çalıştırmalısın.")
+        else:
+            buffer = BytesIO()
 
-        def pdf_text(value):
-            replacements = {
-                "ğ": "g", "Ğ": "G",
-                "ü": "u", "Ü": "U",
-                "ş": "s", "Ş": "S",
-                "ı": "i", "İ": "I",
-                "ö": "o", "Ö": "O",
-                "ç": "c", "Ç": "C"
-            }
+            doc = SimpleDocTemplate(
+                buffer,
+                pagesize=A4,
+                rightMargin=40,
+                leftMargin=40,
+                topMargin=55,
+                bottomMargin=55
+            )
 
-            for old, new in replacements.items():
-                value = value.replace(old, new)
+            styles = getSampleStyleSheet()
+            elements = []
 
-            return value
+            # RENKLER
+            navy = colors.HexColor("#142B4A")
+            red = colors.HexColor("#C62828")
+            light_blue = colors.HexColor("#EAF1F8")
+            gray = colors.HexColor("#596579")
 
-        elements.append(Paragraph(
-            "ISPARTA RESCUE AI",
-            styles["Title"]
-        ))
+            # AFET BİLGİLERİ
+            incident_title = escape(
+                str(selected_incident.get("title", "Belirtilmemiş"))
+            )
 
-        elements.append(Paragraph(
-            "Egitim Amacli Afet Simulasyonu Raporu",
-            styles["Heading2"]
-        ))
+            incident_type = escape(
+                str(selected_incident.get("incident_type", "Belirtilmemiş"))
+            )
 
-        elements.append(Spacer(1, 20))
-
-        elements.append(Paragraph(
-            f"Afet konumu: {incident[0]:.5f}, {incident[1]:.5f}",
-            styles["Normal"]
-        ))
-
-        elements.append(Paragraph(
-            f"Tarih: {datetime.now().strftime('%d.%m.%Y %H:%M')}",
-            styles["Normal"]
-        ))
-
-        elements.append(Spacer(1, 20))
-
-        table_data = [
-            ["Kurtarma Ekibi", "Mesafe (m)", "Durum"]
-        ]
-
-        for row in st.session_state["route_rows"]:
-            table_data.append([
-                pdf_text(str(row["Ekip"])),
-                str(row["Mesafe (m)"])
+            # EN YAKIN EKİP
+            valid_rows = [
+                row for row in st.session_state["route_rows"]
                 if row["Mesafe (m)"] is not None
-                else "-",
-                pdf_text(str(row["Durum"]))
-            ])
+            ]
 
-        report_table = Table(table_data, repeatRows=1)
+            best_team = (
+                min(valid_rows, key=lambda x: x["Mesafe (m)"])
+                if valid_rows else None
+            )
 
-        report_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.darkblue),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("PADDING", (0, 0), (-1, -1), 8),
-        ]))
+            # BAŞLIK
+            title_style = styles["Title"]
+            title_style.textColor = navy
+            title_style.fontSize = 23
 
-        elements.append(report_table)
-        elements.append(Spacer(1, 20))
+            elements.append(Paragraph(
+                "ISPARTA RESCUE AI",
+                title_style
+            ))
 
-        elements.append(Paragraph(
-            pdf_text(
-                "Bu rapor egitim ve arastirma amacli bir simulasyon sonucudur. "
-                "Gercek afet ve acil durumlarda kullanilamaz."
-            ),
-            styles["Normal"]
-        ))
+            subtitle_style = styles["Heading2"]
+            subtitle_style.textColor = red
 
-        doc.build(elements)
+            elements.append(Paragraph(
+                "AFET SİMÜLASYONU RAPORU",
+                subtitle_style
+            ))
 
-        st.download_button(
-            "PDF Raporunu İndir",
-            data=buffer.getvalue(),
-            file_name="isparta_rescue_ai_raporu.pdf",
-            mime="application/pdf"
-        )
+            elements.append(Spacer(1, 18))
 
-with tab_closure:
+            # SENARYO BİLGİLERİ
+            elements.append(Paragraph(
+                "<b>AFET SENARYOSU BİLGİLERİ</b>",
+                styles["Heading2"]
+            ))
+
+            info_data = [
+                ["Senaryo adı", incident_title],
+                ["Afet türü", incident_type],
+                ["Enlem", f"{incident[0]:.6f}"],
+                ["Boylam", f"{incident[1]:.6f}"],
+                ["Rapor tarihi", datetime.now().strftime("%d.%m.%Y %H:%M")]
+            ]
+
+            info_table = Table(
+                info_data,
+                colWidths=[125, 355]
+            )
+
+            info_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (0, -1), light_blue),
+                ("TEXTCOLOR", (0, 0), (-1, -1), navy),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("PADDING", (0, 0), (-1, -1), 8),
+            ]))
+
+            elements.append(info_table)
+            elements.append(Spacer(1, 20))
+
+            # EN YAKIN EKİP ÖZETİ
+            elements.append(Paragraph(
+                "<b>EN YAKIN EKİP ANALİZİ</b>",
+                styles["Heading2"]
+            ))
+
+            if best_team:
+                summary_text = (
+                    f"En kısa yol ağı mesafesine sahip ekip: "
+                    f"<b>{escape(str(best_team['Ekip']))}</b><br/>"
+                    f"Yol ağı mesafesi: "
+                    f"<b>{best_team['Mesafe (m)']:.1f} metre</b>"
+                )
+            else:
+                summary_text = (
+                    "Rota bulunamadığı için en yakın ekip belirlenemedi."
+                )
+
+            summary_table = Table(
+                [[Paragraph(summary_text, styles["Normal"])]],
+                colWidths=[480]
+            )
+
+            summary_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), light_blue),
+                ("BOX", (0, 0), (-1, -1), 1, navy),
+                ("PADDING", (0, 0), (-1, -1), 12),
+            ]))
+
+            elements.append(summary_table)
+            elements.append(Spacer(1, 20))
+
+            # EKİP SONUÇLARI
+            elements.append(Paragraph(
+                "<b>KURTARMA EKİPLERİ MESAFE TABLOSU</b>",
+                styles["Heading2"]
+            ))
+
+            table_data = [
+                ["Kurtarma Ekibi", "Mesafe (m)", "Durum"]
+            ]
+
+            for row in st.session_state["route_rows"]:
+                table_data.append([
+                    escape(str(row["Ekip"])),
+                    (
+                        f"{row['Mesafe (m)']:.1f}"
+                        if row["Mesafe (m)"] is not None
+                        else "-"
+                    ),
+                    escape(str(row["Durum"]))
+                ])
+
+            result_table = Table(
+                table_data,
+                colWidths=[190, 120, 170],
+                repeatRows=1
+            )
+
+            result_table.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), navy),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1),
+                 [colors.white, light_blue]),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("PADDING", (0, 0), (-1, -1), 8),
+            ]))
+
+            elements.append(result_table)
+            elements.append(Spacer(1, 25))
+
+            # EĞİTİM UYARISI
+            warning_style = styles["Normal"]
+            warning_style.textColor = red
+
+            elements.append(Paragraph(
+                "<b>ÖNEMLİ UYARI</b><br/>"
+                "Bu rapor yalnızca eğitim ve araştırma amaçlı "
+                "bir simülasyon çıktısıdır. Gerçek afet, acil durum "
+                "ve kurtarma operasyonlarında kullanılamaz. "
+                "Mesafeler gerçek zamanlı trafik ve saha koşullarını "
+                "yansıtmaz.",
+                warning_style
+            ))
+
+            # SAYFA ALTI
+            def add_page_number(canvas, doc):
+                canvas.saveState()
+                canvas.setStrokeColor(navy)
+                canvas.line(40, 40, A4[0] - 40, 40)
+                canvas.setFont("Helvetica", 8)
+                canvas.setFillColor(gray)
+                canvas.drawString(
+                    40, 27, "ISPARTA RESCUE AI | Egitim Projesi"
+                )
+                canvas.drawRightString(
+                    A4[0] - 40, 27, f"Sayfa {doc.page}"
+                )
+                canvas.restoreState()
+
+            doc.build(
+                elements,
+                onFirstPage=add_page_number,
+                onLaterPages=add_page_number
+            )
+
+            st.success("Profesyonel PDF raporu hazırlandı!")
+
+            st.download_button(
+                "⬇️ Profesyonel PDF Raporunu İndir",
+                data=buffer.getvalue(),
+                file_name="isparta_rescue_ai_profesyonel_rapor.pdf",
+                mime="application/pdf"
+            )
     st.subheader("Tek bir yol kesiminin kapanması senaryosu")
     st.write("Önce rota analizini çalıştır. Ardından seçilen ekibin rotasındaki bir yol kesimi geçici olarak kapatılarak alternatif aranır.")
     if "route_layers" not in st.session_state or not st.session_state.get("route_layers"):
