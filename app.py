@@ -520,13 +520,13 @@ def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
 
     ox.settings.use_cache = True
     ox.settings.log_console = False
-    ox.settings.requests_timeout = 60
+    ox.settings.requests_timeout = 30
 
-    overpass_servers = [
-        "https://overpass.kumi.systems/api",
-        "https://overpass.private.coffee/api",
-        "https://overpass-api.de/api",
-    ]
+   overpass_servers = [
+    "https://overpass-api.de/api",
+    "https://overpass.kumi.systems/api",
+    "https://overpass.private.coffee/api",
+]
 
     last_error = None
 
@@ -787,7 +787,7 @@ with tab_route:
 
     if st.button("Rota analizini çalıştır", type="primary", key="route_run"):
         try:
-            with st.spinner("Isparta yol ağı alınıyor ve rotalar hesaplanıyor... İlk çalıştırma biraz sürebilir."):
+            with st.spinner("Isparta yol ağı indiriliyor... Lütfen bekleyin. İlk indirme internet bağlantısına göre zaman alabilir."):
                 G = get_network(network_mode, network_dist)
                 target_node = nearest_node(G, *incident)
                 rows, route_layers = [], []
