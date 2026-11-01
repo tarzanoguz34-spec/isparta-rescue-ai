@@ -8,6 +8,9 @@ import base64
 import folium
 import networkx as nx
 import osmnx as ox
+# OSMnx bağlantı ayarları
+ox.settings.requests_timeout = 180
+ox.settings.use_cache = True
 import pandas as pd
 import streamlit as st
 from supabase import create_client
