@@ -816,37 +816,36 @@ with tab_route:
             st.error(f"Yol ağı alınamadı veya rota hesaplanamadı: {exc}")
             st.info("İnternet bağlantısını kontrol edip yeniden deneyebilirsin. OpenStreetMap hizmeti geçici olarak yanıt vermiyor olabilir.")
 
-        if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
-        df = pd.DataFrame(st.session_state["route_rows"])
-        st.dataframe(df, use_container_width=True, hide_index=True)
+                if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
+            df = pd.DataFrame(st.session_state["route_rows"])
+            st.dataframe(df, use_container_width=True, hide_index=True)
 
-        valid = df.dropna(subset=["Mesafe (m)"])
+            valid = df.dropna(subset=["Mesafe (m)"])
 
-        if not valid.empty:
-            best = valid.sort_values("Mesafe (m)").iloc[0]
-            st.success(
-                f"Bu simülasyonda en kısa yol ağı mesafesi: "
-                f"**{best['Ekip']} — {best['Mesafe (m)']:.1f} m**"
+            if not valid.empty:
+                best = valid.sort_values("Mesafe (m)").iloc[0]
+                st.success(
+                    f"Bu simülasyonda en kısa yol ağı mesafesi: "
+                    f"**{best['Ekip']} — {best['Mesafe (m)']:.1f} m**"
+                )
+
+                route_map = build_map(
+                    incident, teams, st.session_state.get("route_layers", [])
+                )
+                st_folium(
+                    route_map,
+                    height=480,
+                    use_container_width=True,
+                    key="route_map"
+                )
+
+            st.caption(
+                "Mesafeler yol ağı uzunluğudur; trafik, ekip kapasitesi "
+                "ve gerçek saha koşulları hesaba katılmaz."
             )
-
-            route_map = build_map(
-                incident, teams, st.session_state.get("route_layers", [])
-            )
-            st_folium(
-                route_map,
-                height=480,
-                use_container_width=True,
-                key="route_map"
-            )
-
-        st.caption(
-            "Mesafeler yol ağı uzunluğudur; trafik, ekip kapasitesi "
-            "ve gerçek saha koşulları hesaba katılmaz."
-        )
 
     # PDF RAPOR OLUŞTURMA
     st.subheader("📄 Simülasyon Raporu")
-
     if st.button("PDF Raporunu Hazırla", key="create_pdf"):
         buffer = BytesIO()
 
