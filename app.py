@@ -520,13 +520,13 @@ def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
 
     ox.settings.use_cache = True
     ox.settings.log_console = False
-    ox.settings.requests_timeout = 30
+    ox.settings.requests_timeout = 60
 
-   overpass_servers = [
-    "https://overpass-api.de/api",
-    "https://overpass.kumi.systems/api",
-    "https://overpass.private.coffee/api",
-]
+    overpass_servers = [
+        "https://overpass-api.de/api",
+        "https://overpass.kumi.systems/api",
+        "https://overpass.private.coffee/api",
+    ]
 
     last_error = None
 
@@ -534,16 +534,17 @@ def load_graph(network_type: str, dist_m: int) -> nx.MultiDiGraph:
         try:
             ox.settings.overpass_url = server
 
-            return ox.graph_from_point(
+            graph = ox.graph_from_point(
                 CENTER,
                 dist=dist_m,
                 network_type=network_type,
                 simplify=True,
             )
 
+            return graph
+
         except Exception as exc:
             last_error = exc
-            continue
 
     raise RuntimeError(
         f"Yol ağı alınamadı: {last_error}"
