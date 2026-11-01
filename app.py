@@ -759,29 +759,48 @@ def get_network(mode: str, dist: int):
 with tab_route:
     st.subheader("En yakın ekibin yol ağına göre belirlenmesi")
     st.write("Hesaplama, seçilen ulaşım ağı üzerinde OpenStreetMap yol verisiyle yapılır.")
+
     if st.button("Rota analizini çalıştır", type="primary", key="route_run"):
         try:
             with st.spinner("Isparta yol ağı alınıyor ve rotalar hesaplanıyor... İlk çalıştırma biraz sürebilir."):
                 G = get_network(network_mode, network_dist)
                 target_node = nearest_node(G, *incident)
                 rows, route_layers = [], []
+
                 for i, team in enumerate(teams):
                     start_node = nearest_node(G, *team)
+
                     try:
                         route = nx.shortest_path(G, start_node, target_node, weight="length")
                         distance = route_length(G, route)
-                        rows.append({"Ekip": TEAM_NAMES[i], "Mesafe (m)": round(distance, 1),
-                                     "Düğüm sayısı": len(route), "Durum": "Rota bulundu"})
-                        route_layers.append({"graph": G, "route": route, "color": TEAM_COLORS[i],
-                                             "label": f"{TEAM_NAMES[i]} — {distance:.0f} m"})
+
+                        rows.append({
+                            "Ekip": TEAM_NAMES[i],
+                            "Mesafe (m)": round(distance, 1),
+                            "Düğüm sayısı": len(route),
+                            "Durum": "Rota bulundu"
+                        })
+
+                        route_layers.append({
+                            "graph": G,
+                            "route": route,
+                            "color": TEAM_COLORS[i],
+                            "label": f"{TEAM_NAMES[i]} — {distance:.0f} m"
+                        })
+
                     except (nx.NetworkXNoPath, nx.NodeNotFound):
-                        rows.append({"Ekip": TEAM_NAMES[i], "Mesafe (m)": None,
-                                     "Düğüm sayısı": None, "Durum": "Bağlantı bulunamadı"})
+                        rows.append({
+                            "Ekip": TEAM_NAMES[i],
+                            "Mesafe (m)": None,
+                            "Düğüm sayısı": None,
+                            "Durum": "Bağlantı bulunamadı"
+                        })
+
                 st.session_state["route_rows"] = rows
                 st.session_state["route_layers"] = route_layers
                 st.session_state["active_graph"] = G
                 st.session_state["active_mode"] = network_mode
-                
+
                 # Simülasyon sonucunu Supabase'e kaydet
                 try:
                     best_team = min(
@@ -816,44 +835,44 @@ with tab_route:
             st.error(f"Yol ağı alınamadı veya rota hesaplanamadı: {exc}")
             st.info("İnternet bağlantısını kontrol edip yeniden deneyebilirsin. OpenStreetMap hizmeti geçici olarak yanıt vermiyor olabilir.")
 
-         if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
-            df = pd.DataFrame(st.session_state["route_rows"])
-            st.dataframe(df, use_container_width=True, hide_index=True)
+    # ROTA SONUÇLARI
+    if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
+        df = pd.DataFrame(st.session_state["route_rows"])
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
-            valid = df.dropna(subset=["Mesafe (m)"])
+        valid = df.dropna(subset=["Mesafe (m)"])
 
-            if not valid.empty:
-                best = valid.sort_values("Mesafe (m)").iloc[0]
-                st.success(
-                    f"Bu simülasyonda en kısa yol ağı mesafesi: "
-                    f"**{best['Ekip']} — {best['Mesafe (m)']:.1f} m**"
-                )
+        if not valid.empty:
+            best = valid.sort_values("Mesafe (m)").iloc[0]
 
-                route_map = build_map(
-                    incident, teams, st.session_state.get("route_layers", [])
-                )
-                st_folium(
-                    route_map,
-                    height=480,
-                    use_container_width=True,
-                    key="route_map"
-                )
-
-            st.caption(
-                "Mesafeler yol ağı uzunluğudur; trafik, ekip kapasitesi "
-                "ve gerçek saha koşulları hesaba katılmaz."
+            st.success(
+                f"Bu simülasyonda en kısa yol ağı mesafesi: "
+                f"**{best['Ekip']} — {best['Mesafe (m)']:.1f} m**"
             )
+
+            route_map = build_map(
+                incident, teams, st.session_state.get("route_layers", [])
+            )
+
+            st_folium(
+                route_map,
+                height=480,
+                use_container_width=True,
+                key="route_map"
+            )
+
+        st.caption(
+            "Mesafeler yol ağı uzunluğudur; trafik, ekip kapasitesi "
+            "ve gerçek saha koşulları hesaba katılmaz."
+        )
 
     # PDF RAPOR OLUŞTURMA
     st.subheader("📄 Simülasyon Raporu")
+
     if st.button("PDF Raporunu Hazırla", key="create_pdf"):
         buffer = BytesIO()
 
-        doc = SimpleDocTemplate(
-            buffer,
-            pagesize=A4
-        )
-
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
         elements = []
 
@@ -866,8 +885,10 @@ with tab_route:
                 "ö": "o", "Ö": "O",
                 "ç": "c", "Ç": "C"
             }
+
             for old, new in replacements.items():
                 value = value.replace(old, new)
+
             return value
 
         elements.append(Paragraph(
@@ -930,7 +951,7 @@ with tab_route:
         doc.build(elements)
 
         st.download_button(
-            "⬇️ PDF Raporunu İndir",
+            "PDF Raporunu İndir",
             data=buffer.getvalue(),
             file_name="isparta_rescue_ai_raporu.pdf",
             mime="application/pdf"
