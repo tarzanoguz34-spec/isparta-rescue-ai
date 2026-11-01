@@ -825,11 +825,12 @@ with tab_route:
             st.success(f"Bu simülasyonda en kısa yol ağı mesafesi: **{best['Ekip']} — {best['Mesafe (m)']:.1f} m**")
             route_map = build_map(incident, teams, st.session_state.get("route_layers", []))
             st_folium(route_map, height=480, use_container_width=True, key="route_map")
-        st.caption("Mesafeler yol ağı uzunluğudur; trafik, ekip kapasitesi ve gerçek saha koşulları hesaba katılmaz.")
-            # PDF RAPOR OLUŞTURMA
-            st.subheader("📄 Simülasyon Raporu")
+              st.caption("Mesafeler yol ağı uzunluğudur; trafik, ekip kapasitesi ve gerçek saha koşulları hesaba katılmaz.")
 
-            if st.button("PDF Raporunu Hazırla", key="create_pdf"):
+    # PDF RAPOR OLUŞTURMA
+    st.subheader("📄 Simülasyon Raporu")
+
+    if st.button("PDF Raporunu Hazırla", key="create_pdf"):
 
                 buffer = BytesIO()
 
