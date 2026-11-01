@@ -816,7 +816,7 @@ with tab_route:
             st.error(f"Yol ağı alınamadı veya rota hesaplanamadı: {exc}")
             st.info("İnternet bağlantısını kontrol edip yeniden deneyebilirsin. OpenStreetMap hizmeti geçici olarak yanıt vermiyor olabilir.")
 
-         if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
+        if "route_rows" in st.session_state and st.session_state.get("active_mode") == network_mode:
         df = pd.DataFrame(st.session_state["route_rows"])
         st.dataframe(df, use_container_width=True, hide_index=True)
 
